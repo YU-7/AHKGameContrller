@@ -5,20 +5,25 @@
 ; 重要提示：不同品牌的手柄可能有不同的按键编号，请使用Ctrl+Alt+J来识别您手柄的正确按键代码
 
 ; 配置参数（必须放在#Include之前，避免被return语句跳过）
-Sensitivity := 1  ; 鼠标灵敏度 (1-10)
+Sensitivity := 0.5  ; 鼠标灵敏度 (1-10)
 Deadzone := 20    ; 摇杆死区，防止微小移动被误触发
+RightStickSpeedFactor := 0.5  ; 右摇杆速度系数，使右摇杆移动速度比左摇杆慢
 ; 初始化变量
 LastJoyX := 0
 LastJoyY := 0
+LastJoyR := 0
+LastJoyU := 0
 ; 导入手柄按键监控模块
 ; #include JoyKeyMonitor.ahk
 
 ; 使用定时器代替无限循环，这样热键功能才能正常工作
 SetTimer ControlMouseWithJoystick, 10  ; 每10毫秒执行一次
+SetTimer ControlMouseWithRightJoystick, 10  ; 每10毫秒执行一次右摇杆控制
 
 ; 摇杆控制鼠标的函数
 ; 全局变量用于存储当前的移动速度
-CurrentSpeed := Sensitivity
+LeftCurrentSpeed := Sensitivity
+RightCurrentSpeed := 0.1
 
 ; 创建速度调节GUI的函数
 CreateSpeedControlGUI() {
@@ -34,16 +39,25 @@ CreateSpeedControlGUI() {
     SpeedGUI := Gui("+AlwaysOnTop", "鼠标移动速度调节")
     SpeedGUI.SetFont("s10")
 
-    ; 添加滑块控件
-    SpeedGUI.Add("Text", , "速度值: ")
-    SpeedValueText := SpeedGUI.Add("Text", "xm w50", CurrentSpeed)
+    ; 添加左摇杆速度滑块控件
+    SpeedGUI.Add("Text", , "左摇杆速度值: ")
+    SpeedValueText := SpeedGUI.Add("Text", "xm w50", LeftCurrentSpeed)
 
     ; 滑块范围从0.1到10，步长为0.1
     SpeedSlider := SpeedGUI.Add("Slider", "xm r1 w200 vSpeedSlider Range0.1-10 TickInterval0.1 AltSubmit gUpdateSpeed",
-        CurrentSpeed)
+        LeftCurrentSpeed)
+
+    ; 添加右摇杆速度系数滑块控件
+    SpeedGUI.Add("Text", "xm y+10", "右摇杆速度系数: ")
+    RightStickValueText := SpeedGUI.Add("Text", "xm w50", RightStickSpeedFactor)
+
+    ; 右摇杆速度系数滑块范围从0.1到2，步长为0.1
+    RightStickSlider := SpeedGUI.Add("Slider",
+        "xm r1 w200 vRightStickSlider Range0.1-2 TickInterval0.1 AltSubmit gUpdateRightStickSpeed",
+        RightStickSpeedFactor)
 
     ; 添加说明文本
-    SpeedGUI.Add("Text", "xm", "使用滑块调节摇杆控制鼠标的移动速度")
+    SpeedGUI.Add("Text", "xm y+10", "使用滑块调节左右摇杆控制鼠标的移动速度")
     SpeedGUI.Add("Text", "xm", "Ctrl+Alt+S 显示/隐藏此窗口")
 
     ; 添加按钮
@@ -59,10 +73,20 @@ CreateSpeedControlGUI() {
         SpeedValueText.Value := Round(CurrentSpeed, 1)
     }
 
+    UpdateRightStickSpeed(*) {
+        global RightStickSpeedFactor
+        RightStickSpeedFactor := RightStickSlider.Value
+        RightStickValueText.Value := Round(RightStickSpeedFactor, 1)
+    }
+
     ResetSpeed(*) {
+        global RightStickSpeedFactor
         CurrentSpeed := Sensitivity
+        RightStickSpeedFactor := 0.5  ; 重置为默认值
         SpeedSlider.Value := CurrentSpeed
+        RightStickSlider.Value := RightStickSpeedFactor
         SpeedValueText.Value := Round(CurrentSpeed, 1)
+        RightStickValueText.Value := Round(RightStickSpeedFactor, 1)
     }
 
     CloseSpeedGUI(*) {
@@ -80,8 +104,24 @@ ControlMouseWithJoystick() {
     JoyY := GetKeyState("JoyY")
 
     ; 应用死区过滤和当前速度
-    MoveX := Abs(JoyX - 50) > Deadzone ? (JoyX - 50) * CurrentSpeed : 0
-    MoveY := Abs(JoyY - 50) > Deadzone ? (JoyY - 50) * CurrentSpeed : 0
+    MoveX := Abs(JoyX - 50) > Deadzone ? (JoyX - 50) * LeftCurrentSpeed : 0
+    MoveY := Abs(JoyY - 50) > Deadzone ? (JoyY - 50) * LeftCurrentSpeed : 0
+
+    ; 只有当摇杆移动超出死区时才移动鼠标
+    if (MoveX != 0 || MoveY != 0) {
+        MouseMove MoveX, MoveY, 0, "R"  ; R表示相对移动
+    }
+}
+
+; 右摇杆控制鼠标的函数（使用较慢的速度）
+ControlMouseWithRightJoystick() {
+    ; 获取右摇杆R和U轴的值（R对应X方向，U对应Y方向）
+    JoyR := GetKeyState("JoyR")
+    JoyU := GetKeyState("JoyU")
+
+    ; 应用死区过滤、当前速度和右摇杆速度系数
+    MoveY := Abs(JoyR - 50) > Deadzone ? (JoyR - 50) * RightCurrentSpeed : 0
+    MoveX := Abs(JoyU - 50) > Deadzone ? (JoyU - 50) * RightCurrentSpeed : 0
 
     ; 只有当摇杆移动超出死区时才移动鼠标
     if (MoveX != 0 || MoveY != 0) {
