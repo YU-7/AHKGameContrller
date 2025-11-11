@@ -1,199 +1,84 @@
-﻿#Requires AutoHotkey v2.0
-
+#Requires AutoHotkey v2.0
+; 从Util.ahk导入函数
+#Include %A_ScriptDir%\Util.ahk
 ; 游戏手柄映射脚本
-; 功能：1. 左摇杆映射为鼠标控制 2. 十字键映射为方向键
 ; 重要提示：不同品牌的手柄可能有不同的按键编号，请使用Ctrl+Alt+J来识别您手柄的正确按键代码
 
-; 配置参数（必须放在#Include之前，避免被return语句跳过）
+; 确保脚本持续运行，以便能够接收窗口消息
+Persistent
+
+; 注册为Shell Hook窗口以接收系统级别的窗口事件
+; WM_SHELLHOOKMESSAGE是系统发送窗口事件的消息ID
+WM_SHELLHOOKMESSAGE := DllCall("RegisterWindowMessage", "Str", "SHELLHOOK")
+; 注册当前脚本窗口为Shell Hook窗口
+DllCall("RegisterShellHookWindow", "Ptr", A_ScriptHwnd)
+; 监听Shell Hook消息
+OnMessage WM_SHELLHOOKMESSAGE, OnShellHookMessage
+
+; HSHELL_WINDOWACTIVATED是窗口激活的事件代码
+HSHELL_WINDOWACTIVATED := 4
 Sensitivity := 0.5  ; 鼠标灵敏度 (1-10)
-Deadzone := 20    ; 摇杆死区，防止微小移动被误触发
-RightStickSpeedFactor := 0.5  ; 右摇杆速度系数，使右摇杆移动速度比左摇杆慢
-; 初始化变量
-LastJoyX := 0
-LastJoyY := 0
-LastJoyR := 0
-LastJoyU := 0
+; 窗口脚本映射对象 - 使用Map代替Object以兼容v2语法
+WindowScripts := Map()
+WindowScripts["notepad.exe"] := NotepadScript
+WindowScripts["chrome.exe"] := ChromeScript
+global count := 0
+
+; Shell Hook消息处理函数
+OnShellHookMessage(wParam, lParam, msg, hwnd) {
+    ; 检查消息类型是否为窗口激活
+    if (wParam = HSHELL_WINDOWACTIVATED) {
+        ; lParam包含被激活窗口的句柄
+        ScreenWidth := A_ScreenWidth
+        ScreenHeight := A_ScreenHeight
+        global count  ; 声明使用全局变量
+        
+        try {
+            count++
+            ; 使用"A"参数获取当前活动窗口的进程名
+            windowTitle := WinGetProcessName("A")
+            
+            ToolTip("调试信息：窗口被激活 " . count, ScreenWidth // 2, ScreenHeight - 30)
+            ToolTip("当前激活的程序名: " . windowTitle, ScreenWidth // 2, ScreenHeight - 30)
+            
+            ; 检查是否有对应的脚本函数
+            if (WindowScripts.Has(windowTitle)) {
+                ; 执行对应程序的脚本函数
+                WindowScripts[windowTitle]()
+            }
+            
+        } catch {
+            ; 发生错误时显示提示
+            ToolTip("错误：无法获取窗口信息", ScreenWidth // 2, ScreenHeight - 30)
+        }
+    }
+}
+
+; Notepad专用脚本
+NotepadScript() {
+    ; 为记事本设置特定的控制行为
+    ; 弹出提示框显示灵敏度设置
+    MsgBox("记事本窗口的鼠标灵敏度设置：\n左摇杆速度: " . (Sensitivity * 0.8) . "\n右摇杆速度: 0.1", "窗口特定设置")
+}
+
+; Chrome专用脚本
+ChromeScript() {
+    ; 为Chrome设置特定的控制行为
+    global LeftCurrentSpeed := Sensitivity * 1.2  ; 稍高的灵敏度
+    global RightCurrentSpeed := 0.15  ; 右摇杆速度稍快
+}
+
 ; 导入手柄按键监控模块
 ; #include JoyKeyMonitor.ahk
-
-; 使用定时器代替无限循环，这样热键功能才能正常工作
-SetTimer ControlMouseWithJoystick, 10  ; 每10毫秒执行一次
-SetTimer ControlMouseWithRightJoystick, 10  ; 每10毫秒执行一次右摇杆控制
-
-; 摇杆控制鼠标的函数
 ; 全局变量用于存储当前的移动速度
-LeftCurrentSpeed := Sensitivity
-RightCurrentSpeed := 0.1
-
-; 创建速度调节GUI的函数
-CreateSpeedControlGUI() {
-    static SpeedGUI := 0
-
-    ; 如果GUI已经存在，则显示它
-    if (SpeedGUI && SpeedGUI.Exist) {
-        SpeedGUI.Show()
-        return
-    }
-
-    ; 创建新的GUI
-    SpeedGUI := Gui("+AlwaysOnTop", "鼠标移动速度调节")
-    SpeedGUI.SetFont("s10")
-
-    ; 添加左摇杆速度滑块控件
-    SpeedGUI.Add("Text", , "左摇杆速度值: ")
-    SpeedValueText := SpeedGUI.Add("Text", "xm w50", LeftCurrentSpeed)
-
-    ; 滑块范围从0.1到10，步长为0.1
-    SpeedSlider := SpeedGUI.Add("Slider", "xm r1 w200 vSpeedSlider Range0.1-10 TickInterval0.1 AltSubmit gUpdateSpeed",
-        LeftCurrentSpeed)
-
-    ; 添加右摇杆速度系数滑块控件
-    SpeedGUI.Add("Text", "xm y+10", "右摇杆速度系数: ")
-    RightStickValueText := SpeedGUI.Add("Text", "xm w50", RightStickSpeedFactor)
-
-    ; 右摇杆速度系数滑块范围从0.1到2，步长为0.1
-    RightStickSlider := SpeedGUI.Add("Slider",
-        "xm r1 w200 vRightStickSlider Range0.1-2 TickInterval0.1 AltSubmit gUpdateRightStickSpeed",
-        RightStickSpeedFactor)
-
-    ; 添加说明文本
-    SpeedGUI.Add("Text", "xm y+10", "使用滑块调节左右摇杆控制鼠标的移动速度")
-    SpeedGUI.Add("Text", "xm", "Ctrl+Alt+S 显示/隐藏此窗口")
-
-    ; 添加按钮
-    SpeedGUI.Add("Button", "xm w80 gResetSpeed", "重置默认值")
-    SpeedGUI.Add("Button", "x+10 w80 gCloseSpeedGUI", "关闭")
-
-    ; 显示GUI
-    SpeedGUI.Show()
-
-    ; 定义回调函数
-    UpdateSpeed(*) {
-        CurrentSpeed := SpeedSlider.Value
-        SpeedValueText.Value := Round(CurrentSpeed, 1)
-    }
-
-    UpdateRightStickSpeed(*) {
-        global RightStickSpeedFactor
-        RightStickSpeedFactor := RightStickSlider.Value
-        RightStickValueText.Value := Round(RightStickSpeedFactor, 1)
-    }
-
-    ResetSpeed(*) {
-        global RightStickSpeedFactor
-        CurrentSpeed := Sensitivity
-        RightStickSpeedFactor := 0.5  ; 重置为默认值
-        SpeedSlider.Value := CurrentSpeed
-        RightStickSlider.Value := RightStickSpeedFactor
-        SpeedValueText.Value := Round(CurrentSpeed, 1)
-        RightStickValueText.Value := Round(RightStickSpeedFactor, 1)
-    }
-
-    CloseSpeedGUI(*) {
-        SpeedGUI.Hide()
-    }
-}
-
-; 显示/隐藏速度调节窗口的热键
-^!s:: CreateSpeedControlGUI()
-
-; 摇杆控制鼠标的函数（支持参数调节速度）
-ControlMouseWithJoystick() {
-    ; 获取左摇杆X和Y轴的值
-    JoyX := GetKeyState("JoyX")
-    JoyY := GetKeyState("JoyY")
-
-    ; 应用死区过滤和当前速度
-    MoveX := Abs(JoyX - 50) > Deadzone ? (JoyX - 50) * LeftCurrentSpeed : 0
-    MoveY := Abs(JoyY - 50) > Deadzone ? (JoyY - 50) * LeftCurrentSpeed : 0
-
-    ; 只有当摇杆移动超出死区时才移动鼠标
-    if (MoveX != 0 || MoveY != 0) {
-        MouseMove MoveX, MoveY, 0, "R"  ; R表示相对移动
-    }
-}
-
-; 右摇杆控制鼠标的函数（使用较慢的速度）
-ControlMouseWithRightJoystick() {
-    ; 获取右摇杆R和U轴的值（R对应X方向，U对应Y方向）
-    JoyR := GetKeyState("JoyR")
-    JoyU := GetKeyState("JoyU")
-
-    ; 应用死区过滤、当前速度和右摇杆速度系数
-    MoveY := Abs(JoyR - 50) > Deadzone ? (JoyR - 50) * RightCurrentSpeed : 0
-    MoveX := Abs(JoyU - 50) > Deadzone ? (JoyU - 50) * RightCurrentSpeed : 0
-
-    ; 只有当摇杆移动超出死区时才移动鼠标
-    if (MoveX != 0 || MoveY != 0) {
-        MouseMove MoveX, MoveY, 0, "R"  ; R表示相对移动
-    }
-}
+global LeftCurrentSpeed := Sensitivity
+global RightCurrentSpeed := 0.1
+; 使用定时器代替无限循环，这样热键功能才能正常工作
+SetTimer (*) => ControlMouseWithJoystick(LeftCurrentSpeed), 10  ; 每10毫秒执行一次左摇杆控制
+SetTimer (*) => ControlMouseWithRightJoystick(RightCurrentSpeed), 10  ; 每10毫秒执行一次右摇杆控制
 
 ; 十字键映射为方向键 - 使用POV值
 SetTimer CheckPOVDirection, 50
 
-CheckPOVDirection() {
-    static LastPOV := -1
-    POV := GetKeyState("JoyPOV", "P")
-
-    ; 只有当POV值改变时才处理
-    if (POV = LastPOV)
-        return
-
-    LastPOV := POV
-
-    ; 释放所有方向键
-    if GetKeyState("Up")
-        Send "{Up up}"
-    if GetKeyState("Down")
-        Send "{Down up}"
-    if GetKeyState("Left")
-        Send "{Left up}"
-    if GetKeyState("Right")
-        Send "{Right up}"
-
-    ; 根据POV值按下相应的方向键
-    if (POV = 0)
-        Send "{Up down}"      ; 上
-    else if (POV = 9000)
-        Send "{Right down}"   ; 右
-    else if (POV = 18000)
-        Send "{Down down}"    ; 下
-    else if (POV = 27000)
-        Send "{Left down}"    ; 左
-    ; POV = -1 时为中心位置，不按任何键
-}
-
 ; 添加了Z轴监控定时器
 SetTimer ControlMouseWithJoyZ, 50      ; 每50毫秒检查一次Z轴状态，映射为鼠标左键
-
-; 新增Z轴映射为鼠标左键的函数
-ControlMouseWithJoyZ() {
-    ; z50是未触发值，z100左扳机的触发值，z0是右扳机的触发值
-    static IsLeftDown := false
-    static IsRightDown := false
-
-    ; 获取Z轴的值
-    JoyZ := GetKeyState("JoyZ")
-
-    ; 检查Z轴是否处于左扳机触发状态(100)且鼠标左键当前未按下
-    if (JoyZ >= 90 && !IsLeftDown) {  ; 使用90作为阈值，避免精确值问题
-        Send "{LButton down}"       ; 按下鼠标左键
-        IsLeftDown := true
-    }
-    ; 检查Z轴是否处于右扳机触发状态(0)且鼠标右键当前未按下
-    else if (JoyZ <= 10 && !IsRightDown) {  ; 使用10作为阈值，避免精确值问题
-        Send "{RButton down}"       ; 按下鼠标右键
-        IsRightDown := true
-    }
-    ; 检查Z轴是否回到未触发状态(50)且鼠标左键当前处于按下状态
-    else if (JoyZ <= 60 && IsLeftDown) {  ; 使用60作为阈值，避免精确值问题
-        Send "{LButton up}"         ; 释放鼠标左键
-        IsLeftDown := false
-    }
-    ; 检查Z轴是否回到未触发状态(50)且鼠标右键当前处于按下状态
-    else if (JoyZ >= 40 && IsRightDown) {  ; 使用40作为阈值，避免精确值问题
-        Send "{RButton up}"         ; 释放鼠标右键
-        IsRightDown := false
-    }
-}
