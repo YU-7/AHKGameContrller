@@ -10,9 +10,19 @@ HearthStroeMapping() {
     RightCurrentSpeed := 0.1
 
     ; 使用定时器代替无限循环，这样热键功能才能正常工作
-    SetTimer (*) => ControlMouseWithJoystick(LeftCurrentSpeed), 10  ; 每10毫秒执行一次左摇杆控制
-    SetTimer (*) => ControlMouseWithRightJoystick(RightCurrentSpeed), 10  ; 每10毫秒执行一次右摇杆控制
+    SetTimer ControlMouseWithJoystick(LeftCurrentSpeed), 10  ; 每10毫秒执行一次左摇杆控制
+    SetTimer ControlMouseWithRightJoystick(RightCurrentSpeed), 10  ; 每10毫秒执行一次右摇杆控制
     SetTimer CheckPOVDirection, 50
     ; 添加了Z轴监控定时器
     SetTimer ControlMouseWithJoyZ, 50      ; 每50毫秒检查一次Z轴状态，映射为鼠标左键
+}
+
+CancelHearthStroeMapping() {
+    LeftCurrentSpeed := 0
+    RightCurrentSpeed := 0
+
+    SetTimer (*) => ControlMouseWithJoystick(LeftCurrentSpeed), 0
+    SetTimer (*) => ControlMouseWithRightJoystick(RightCurrentSpeed), 0
+    SetTimer CheckPOVDirection, 0
+    SetTimer ControlMouseWithJoyZ, 0
 }

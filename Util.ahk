@@ -5,11 +5,6 @@
 ; 定义全局变量
 #SingleInstance Force
 Deadzone := 20    ; 摇杆死区，防止微小移动被误触发
-POVMapping := Map()
-POVMapping["POV_UP"] := "{Up down}"
-POVMapping["POV_DOWN"] := "{Down down}"
-POVMapping["POV_LEFT"] := "{Left down}"
-POVMapping["POV_RIGHT"] := "{Right down}"
 
 ; 左摇杆控制鼠标的函数（支持参数调节速度）
 ;   - speed: 可选参数，指定移动速度，默认为LeftCurrentSpeed
@@ -60,7 +55,12 @@ ControlMouseWithRightJoystick(speed := "") {
 }
 
 ; 十字键的映射
-CheckPOVDirection(POVMapping) {
+CheckPOVDirection() {
+    POVMapping := Map()
+    POVMapping["POV_UP"] := "{Up down}"
+    POVMapping["POV_DOWN"] := "{Down down}"
+    POVMapping["POV_LEFT"] := "{Left down}"
+    POVMapping["POV_RIGHT"] := "{Right down}"
     static LastPOV := -1
     POV := GetKeyState("JoyPOV", "P")
 

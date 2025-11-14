@@ -3,6 +3,7 @@
 #Include %A_ScriptDir%\Util.ahk
 #include %A_ScriptDir%\Hearthstone.ahk
 #include %A_ScriptDir%\Chrome.ahk
+#include %A_ScriptDir%\DefaultMapping.ahk
 ; 游戏手柄映射脚本
 ; 重要提示：不同品牌的手柄可能有不同的按键编号，请使用Ctrl+Alt+J来识别您手柄的正确按键代码
 
@@ -24,7 +25,6 @@ HSHELL_WINDOWACTIVATED := 4
 WindowScripts := Map()
 WindowScripts["Notepad.exe"] := HearthStroeMapping
 WindowScripts["chrome.exe"] := ChromeScript
-global count := 0
 
 ; Shell Hook消息处理函数
 OnShellHookMessage(wParam, lParam, msg, hwnd) {
@@ -33,23 +33,30 @@ OnShellHookMessage(wParam, lParam, msg, hwnd) {
         ; lParam包含被激活窗口的句柄
         ScreenWidth := A_ScreenWidth
         ScreenHeight := A_ScreenHeight
-        global count  ; 声明使用全局变量
+        global count := 0  ; 声明使用全局变量
+        global beforeWindowTitle := ""
 
         try {
             count++
             ; 使用"A"参数获取当前活动窗口的进程名
             windowTitle := WinGetProcessName("A")
-            ToolTip("执行次数: " . count . "\n 当前激活的程序名: " . windowTitle, ScreenWidth // 2, ScreenHeight - 30)
+            ToolTip("执行次数: " . count . "`n 当前激活的程序名: " . windowTitle, 0, 0)
+            if (beforeWindowTitle != windowTitle) {
+                CancelHearthStroeMapping()
+            }
 
             ; 检查是否有对应的脚本函数
             if (WindowScripts.Has(windowTitle)) {
                 ; 执行对应程序的脚本函数
                 WindowScripts[windowTitle]()
+            } else {
+                DefualtMapping()
             }
-
-        } catch {
-            ; 发生错误时显示提示
-            ToolTip("错误：无法获取窗口信息", ScreenWidth // 2, ScreenHeight - 30)
+            beforeWindowTitle := windowTitle
+        } catch as error {
+            ; 发生错误时显示具体错误信息
+            DefualtMapping()
+            ToolTip("错误：文件名：" . error.File . "`n 错误信息：" . error.Message . "`n 错误行号：" . error.Line, 0, 0)
         }
     }
 }
