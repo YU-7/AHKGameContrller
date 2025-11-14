@@ -3,7 +3,13 @@
 
 ; 确保函数在包含此文件时不会被立即执行
 ; 定义全局变量
+#SingleInstance Force
 Deadzone := 20    ; 摇杆死区，防止微小移动被误触发
+POVMapping := Map()
+POVMapping["POV_UP"] := "{Up down}"
+POVMapping["POV_DOWN"] := "{Down down}"
+POVMapping["POV_LEFT"] := "{Left down}"
+POVMapping["POV_RIGHT"] := "{Right down}"
 
 ; 左摇杆控制鼠标的函数（支持参数调节速度）
 ;   - speed: 可选参数，指定移动速度，默认为LeftCurrentSpeed
@@ -54,7 +60,7 @@ ControlMouseWithRightJoystick(speed := "") {
 }
 
 ; 十字键的映射
-CheckPOVDirection() {
+CheckPOVDirection(POVMapping) {
     static LastPOV := -1
     POV := GetKeyState("JoyPOV", "P")
 
@@ -66,23 +72,23 @@ CheckPOVDirection() {
 
     ; 释放所有方向键
     if GetKeyState("Up")
-        Send "{Up up}"
+        Send POVMapping["POV_UP"]
     if GetKeyState("Down")
-        Send "{Down up}"
+        Send POVMapping["POV_DOWN"]
     if GetKeyState("Left")
-        Send "{Left up}"
+        Send POVMapping["POV_LEFT"]
     if GetKeyState("Right")
-        Send "{Right up}"
+        Send POVMapping["POV_RIGHT"]
 
     ; 根据POV值按下相应的方向键
     if (POV = 0)
-        Send "{Up down}"      ; 上
+        Send POVMapping["POV_UP"]      ; 上
     else if (POV = 9000)
-        Send "{Right down}"   ; 右
+        Send POVMapping["POV_RIGHT"]   ; 右
     else if (POV = 18000)
-        Send "{Down down}"    ; 下
+        Send POVMapping["POV_DOWN"]    ; 下
     else if (POV = 27000)
-        Send "{Left down}"    ; 左
+        Send POVMapping["POV_LEFT"]    ; 左
     ; POV = -1 时为中心位置，不按任何键
 }
 ; 新增Z轴映射为鼠标左键的函数，左右扳机的映射
