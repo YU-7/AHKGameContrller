@@ -9,6 +9,9 @@
 
 ; 确保脚本持续运行，以便能够接收窗口消息
 Persistent
+; 先全局声明并赋值然后再具体的地方在声明一遍
+global count := 0
+global beforeWindowTitle := ""
 
 ; 注册为Shell Hook窗口以接收系统级别的窗口事件
 ; WM_SHELLHOOKMESSAGE是系统发送窗口事件的消息ID
@@ -33,8 +36,8 @@ OnShellHookMessage(wParam, lParam, msg, hwnd) {
         ; lParam包含被激活窗口的句柄
         ScreenWidth := A_ScreenWidth
         ScreenHeight := A_ScreenHeight
-        global count := 0  ; 声明使用全局变量
-        global beforeWindowTitle := ""
+        global count  ; 声明使用全局变量
+        global beforeWindowTitle
 
         try {
             count++

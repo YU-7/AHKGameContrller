@@ -1,6 +1,5 @@
 #Requires AutoHotkey v2.0
 #SingleInstance Force
 ChromeScript() {
-    ; 为Chrome设置特定的控制行为
-    MsgBox("Google Chrome窗口")
+    ToolTip("当前激活的程序名:chrome ", 0, 0)
 }
