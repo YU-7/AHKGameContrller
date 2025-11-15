@@ -56,39 +56,24 @@ ControlMouseWithRightJoystick(speed := "") {
 
 ; 十字键的映射
 CheckPOVDirection() {
-    POVMapping := Map()
-    POVMapping["POV_UP"] := "{Up down}"
-    POVMapping["POV_DOWN"] := "{Down down}"
-    POVMapping["POV_LEFT"] := "{Left down}"
-    POVMapping["POV_RIGHT"] := "{Right down}"
-    static LastPOV := -1
+    ; static LastPOV := -1
     POV := GetKeyState("JoyPOV", "P")
 
     ; 只有当POV值改变时才处理
-    if (POV = LastPOV)
-        return
+    ; if (POV = LastPOV)
+    ;     return
 
-    LastPOV := POV
-
-    ; 释放所有方向键
-    if GetKeyState("Up")
-        Send POVMapping["POV_UP"]
-    if GetKeyState("Down")
-        Send POVMapping["POV_DOWN"]
-    if GetKeyState("Left")
-        Send POVMapping["POV_LEFT"]
-    if GetKeyState("Right")
-        Send POVMapping["POV_RIGHT"]
+    ; LastPOV := POV
 
     ; 根据POV值按下相应的方向键
     if (POV = 0)
-        Send POVMapping["POV_UP"]      ; 上
+        send "{Up}"  ; 上
     else if (POV = 9000)
-        Send POVMapping["POV_RIGHT"]   ; 右
+        Send "{Right}"  ; 右
     else if (POV = 18000)
-        Send POVMapping["POV_DOWN"]    ; 下
+        send "{Down}"  ; 下
     else if (POV = 27000)
-        Send POVMapping["POV_LEFT"]    ; 左
+        Send "{Left}"  ; 左
     ; POV = -1 时为中心位置，不按任何键
 }
 ; 新增Z轴映射为鼠标左键的函数，左右扳机的映射
@@ -123,4 +108,47 @@ ControlMouseWithJoyZ() {
         Send "{RButton up}"         ; 释放鼠标右键
         IsRightDown := false
     }
+}
+
+MappingButton() {
+    ; 左肩键
+    LeftShoulderButton := GetKeyState("Joy5")
+    if (LeftShoulderButton)
+        Send "^+{Tab}"
+    ; 右肩键
+    RightShoulderButton := GetKeyState("Joy6")
+    if (RightShoulderButton)
+        Send "^{Tab}"
+    ; B键
+    ButtonB := GetKeyState("Joy2")
+    if (ButtonB)
+        Send "{Escape}"
+    ; X键
+    ButtonX := GetKeyState("Joy3")
+    if (ButtonX)
+        Send "!{F4}"
+    ; Y键
+    ButtonY := GetKeyState("Joy4")
+    if (ButtonY)
+        Send "f"  ; 发送小写的f字母键
+    ; A键
+    ButtonA := GetKeyState("Joy1")
+    if (ButtonA)
+        Send "{space}"
+
+    ; 非通用部分，飞智的键位
+    ; Select键
+    ButtonSelect := GetKeyState("Joy7")
+    if (ButtonSelect)
+        Send "!{Tab}"  ; 发送Alt+Tab快捷键
+    ; Start键
+    ButtonStart := GetKeyState("Joy8")
+    if (ButtonStart)
+        Send "{F2}"
+    leftbackButton := GetKeyState("Joy9")
+    if (leftbackButton)
+        Send "#d"
+    rightbackButton := GetKeyState("Joy10")
+    if (rightbackButton)
+        Send "{F3}"
 }

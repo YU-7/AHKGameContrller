@@ -17,7 +17,8 @@ DefualtMapping() {
     ; 使用定时器代替无限循环，这样热键功能才能正常工作
     SetTimer (*) => ControlMouseWithJoystick(LeftCurrentSpeed), 10  ; 每10毫秒执行一次左摇杆控制
     SetTimer (*) => ControlMouseWithRightJoystick(RightCurrentSpeed), 10  ; 每10毫秒执行一次右摇杆控制
-    SetTimer CheckPOVDirection, 50
+    SetTimer CheckPOVDirection, 70
     ; 添加了Z轴监控定时器
-    SetTimer ControlMouseWithJoyZ, 50      ; 每50毫秒检查一次Z轴状态，映射为鼠标左键
+    SetTimer ControlMouseWithJoyZ, 70      ; 每50毫秒检查一次Z轴状态，映射为鼠标左键
+    SetTimer MappingButton, 120           ; 每120毫秒检查一次按钮状态，太短会多次触发，太长会反应缓慢
 }
