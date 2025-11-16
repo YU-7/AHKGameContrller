@@ -32,6 +32,16 @@ ControlMouseWithJoystick(speed := "") {
 
 ; 右摇杆控制鼠标的函数（使用较慢的速度）
 ;   - speed: 可选参数，指定移动速度，默认为RightCurrentSpeed
+
+MouseMoveControl() {
+    Sensitivity := 0.5  ; 鼠标灵敏度 (1-10)
+    ; 全局变量用于存储当前的移动速度
+    LeftCurrentSpeed := Sensitivity
+    RightCurrentSpeed := 0.1
+    ; 使用定时器代替无限循环，这样热键功能才能正常工作
+    ControlMouseWithJoystick(LeftCurrentSpeed)
+    ControlMouseWithRightJoystick(RightCurrentSpeed)
+}
 ControlMouseWithRightJoystick(speed := "") {
     ; 如果提供了速度参数，则使用提供的速度，否则使用全局RightCurrentSpeed
     local moveSpeed := speed != "" ? speed : (IsSet(RightCurrentSpeed) ? RightCurrentSpeed : 0.1)
@@ -140,7 +150,7 @@ MappingButton() {
     ; Select键
     ButtonSelect := GetKeyState("Joy7")
     if (ButtonSelect)
-        Send "!{Tab}"  ; 发送Alt+Tab快捷键
+        Send "!{Tab down}"  ; 按下Alt+Tab，保持Alt键按住
     ; Start键
     ButtonStart := GetKeyState("Joy8")
     if (ButtonStart)
@@ -150,5 +160,6 @@ MappingButton() {
         Send "#d"
     rightbackButton := GetKeyState("Joy10")
     if (rightbackButton)
-        Send "{F3}"
+        Send "!{Tab}"
+    ; Send "{Alt down}{Tab}"  ; 按下Alt+Tab，保持Alt键按住
 }

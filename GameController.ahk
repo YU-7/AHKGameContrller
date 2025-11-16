@@ -4,6 +4,7 @@
 #include %A_ScriptDir%\Hearthstone.ahk
 #include %A_ScriptDir%\Chrome.ahk
 #include %A_ScriptDir%\DefaultMapping.ahk
+#include %A_ScriptDir%\QuarkMapping.ahk
 ; 游戏手柄映射脚本
 ; 重要提示：不同品牌的手柄可能有不同的按键编号，请使用Ctrl+Alt+J来识别您手柄的正确按键代码
 
@@ -13,6 +14,8 @@ Persistent
 global count := 0
 global beforeWindowTitle := ""
 
+; 使用定时器代替无限循环，这样热键功能才能正常工作
+SetTimer (*) => MouseMoveControl(), 10  ; 每10毫秒执行一次基础控制
 ; 注册为Shell Hook窗口以接收系统级别的窗口事件
 ; WM_SHELLHOOKMESSAGE是系统发送窗口事件的消息ID
 WM_SHELLHOOKMESSAGE := DllCall("RegisterWindowMessage", "Str", "SHELLHOOK")
@@ -26,8 +29,9 @@ HSHELL_WINDOWACTIVATED := 4
 
 ; 窗口脚本映射对象 - 使用Map代替Object以兼容v2语法N
 WindowScripts := Map()
-WindowScripts["Notepad.exe"] := HearthStroeMapping
-WindowScripts["chrome.exe"] := ChromeScript
+WindowScripts["edge.exe"] := ChromeScript
+WindowScripts["Hearthstone.exe"] := HearthStroeMapping
+WindowScripts["quark.exe"] := QuarkMapping
 
 ; Shell Hook消息处理函数
 OnShellHookMessage(wParam, lParam, msg, hwnd) {
@@ -44,15 +48,17 @@ OnShellHookMessage(wParam, lParam, msg, hwnd) {
             ; 使用"A"参数获取当前活动窗口的进程名
             windowTitle := WinGetProcessName("A")
             ToolTip("执行次数: " . count . "`n 当前激活的程序名: " . windowTitle, 0, 0)
-            if (beforeWindowTitle != windowTitle) {
-                CancelHearthStroeMapping()
+            if (WindowScripts.has(beforeWindowTitle) && beforeWindowTitle != "") {
+                ; 取消之前程序的映射，并处理为首次触发为空的情况
+                SetTimer WindowScripts[beforeWindowTitle](), 0
             }
 
             ; 检查是否有对应的脚本函数
             if (WindowScripts.Has(windowTitle)) {
                 ; 执行对应程序的脚本函数
-                WindowScripts[windowTitle]()
+                SetTimer (*) => WindowScripts[windowTitle](), 120
             } else {
+                ToolTip("执行次数: " . count . "`n 无对应脚本函数 " . windowTitle, 0, 0)
                 DefualtMapping()
             }
             beforeWindowTitle := windowTitle

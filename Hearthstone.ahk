@@ -18,11 +18,6 @@ HearthStroeMapping() {
 }
 
 CancelHearthStroeMapping() {
-    LeftCurrentSpeed := 0
-    RightCurrentSpeed := 0
-
-    SetTimer (*) => ControlMouseWithJoystick(LeftCurrentSpeed), 0
-    SetTimer (*) => ControlMouseWithRightJoystick(RightCurrentSpeed), 0
     SetTimer CheckPOVDirection, 0
     SetTimer ControlMouseWithJoyZ, 0
 }
