@@ -123,44 +123,25 @@ ControlMouseWithJoyZ(TrigerButton) {
 ; 全局的按钮映射
 GlobalMappingButton(ControllerButtonMapping) {
     ; 左肩键
-    LeftShoulderButton := GetKeyState(ControllerButtonMapping["LeftShoulderButton"])
-    if (LeftShoulderButton)
-        Send "^+{Tab}"
+    Hotkey ControllerButtonMapping["LeftShoulderButton"], (*) => Send("{Space}")
     ; 右肩键
-    RightShoulderButton := GetKeyState(ControllerButtonMapping["RightShoulderButton"])
-    if (RightShoulderButton)
-        Send "^{Tab}"
+    Hotkey ControllerButtonMapping["RightShoulderButton"], (*) => Send("^{Tab}")
     ; B键
-    ButtonB := GetKeyState(ControllerButtonMapping["ButtonB"])
-    if (ButtonB)
-        Send "{Escape}"
+    Hotkey ControllerButtonMapping["ButtonB"], (*) => Send("{Escape}")
     ; X键
-    ButtonX := GetKeyState(ControllerButtonMapping["ButtonX"])
-    if (ButtonX)
-        Send "!{F4}"
+    Hotkey ControllerButtonMapping['ButtonX'], (*) => Send("!{F4}")
     ; Y键
-    ButtonY := GetKeyState(ControllerButtonMapping["ButtonY"])
-    if (ButtonY)
-        Send "f"  ; 发送小写的f字母键
+    Hotkey ControllerButtonMapping["ButtonY"], (*) => Send("f")
     ; A键
-    ButtonA := GetKeyState(ControllerButtonMapping["ButtonA"])
-    if (ButtonA)
-        Send "{space}"
+    Hotkey ControllerButtonMapping["ButtonA"], (*) => Send("{space}")
 
     ; 非通用部分，飞智的键位
     ; Select键
-    ButtonSelect := GetKeyState(ControllerButtonMapping["ButtonSelect"])
-    if (ButtonSelect)
-        Send "!{Tab down}"  ; 按下Alt+Tab，保持Alt键按住
+    Hotkey ControllerButtonMapping["ButtonSelect"], (*) => Send("!{Tab down}")  ; 按下Alt+Tab，保持Alt键按住
     ; Start键
-    ButtonStart := GetKeyState(ControllerButtonMapping["ButtonStart"])
-    if (ButtonStart)
-        Send "{F2}"
-    leftbackButton := GetKeyState(ControllerButtonMapping["leftbackButton"])
-    if (leftbackButton)
-        Send "#d"
-    rightbackButton := GetKeyState(ControllerButtonMapping["rightbackButton"])
-    if (rightbackButton)
-        Send "!{Tab}"
-    ; Send "{Alt down}{Tab}"  ; 按下Alt+Tab，保持Alt键按住
+    Hotkey ControllerButtonMapping["ButtonStart"], (*) => Send("{F2}")
+    ; leftback键
+    Hotkey ControllerButtonMapping["leftbackButton"], (*) => Send("#d")  ; 按下Win+D，显示桌面
+    ; rightback键
+    Hotkey ControllerButtonMapping["rightbackButton"], (*) => Send("^!{Tab}") ; 按下Ctrl+Alt+Tab，保持任务栏视图
 }

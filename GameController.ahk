@@ -12,8 +12,10 @@
 ; 确保脚本持续运行，以便能够接收窗口消息
 Persistent
 
-; 使用定时器代替无限循环，这样热键功能才能正常工作
-SetTimer (*) => MouseMoveControl(), 10  ; 每10毫秒执行一次基础控制
+; 摇杆和扳机键控制使用轮询控制
+SetTimer (*) => MouseMoveControl(), 30
+; 全局映射按钮
+GlobalMappingButton(ControllerButtonMapping)
 ; 注册为Shell Hook窗口以接收系统级别的窗口事件
 ; WM_SHELLHOOKMESSAGE是系统发送窗口事件的消息ID
 WM_SHELLHOOKMESSAGE := DllCall("RegisterWindowMessage", "Str", "SHELLHOOK")
@@ -45,7 +47,7 @@ OnShellHookMessage(wParam, lParam, msg, hwnd) {
             ; 检查是否有对应的脚本函数
             if (WindowScripts.Has(windowTitle)) {
                 ; 执行对应程序的脚本函数
-                SetTimer (*) => WindowScripts[windowTitle](), 120
+                WindowScripts[windowTitle]()
             } else {
                 ToolTip("执行次数: " . count . "`n 无对应脚本函数 " . windowTitle, 0, 0)
                 SetTimer (*) => DefualtMapping(), 120
