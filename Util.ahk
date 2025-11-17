@@ -120,45 +120,46 @@ ControlMouseWithJoyZ() {
     }
 }
 
-MappingButton() {
+; 全局的按钮映射
+GlobalMappingButton(ControllerButtonMapping) {
     ; 左肩键
-    LeftShoulderButton := GetKeyState("Joy5")
+    LeftShoulderButton := GetKeyState(ControllerButtonMapping["LeftShoulderButton"])
     if (LeftShoulderButton)
         Send "^+{Tab}"
     ; 右肩键
-    RightShoulderButton := GetKeyState("Joy6")
+    RightShoulderButton := GetKeyState(ControllerButtonMapping["RightShoulderButton"])
     if (RightShoulderButton)
         Send "^{Tab}"
     ; B键
-    ButtonB := GetKeyState("Joy2")
+    ButtonB := GetKeyState(ControllerButtonMapping["ButtonB"])
     if (ButtonB)
         Send "{Escape}"
     ; X键
-    ButtonX := GetKeyState("Joy3")
+    ButtonX := GetKeyState(ControllerButtonMapping["ButtonX"])
     if (ButtonX)
         Send "!{F4}"
     ; Y键
-    ButtonY := GetKeyState("Joy4")
+    ButtonY := GetKeyState(ControllerButtonMapping["ButtonY"])
     if (ButtonY)
         Send "f"  ; 发送小写的f字母键
     ; A键
-    ButtonA := GetKeyState("Joy1")
+    ButtonA := GetKeyState(ControllerButtonMapping["ButtonA"])
     if (ButtonA)
         Send "{space}"
 
     ; 非通用部分，飞智的键位
     ; Select键
-    ButtonSelect := GetKeyState("Joy7")
+    ButtonSelect := GetKeyState(ControllerButtonMapping["ButtonSelect"])
     if (ButtonSelect)
         Send "!{Tab down}"  ; 按下Alt+Tab，保持Alt键按住
     ; Start键
-    ButtonStart := GetKeyState("Joy8")
+    ButtonStart := GetKeyState(ControllerButtonMapping["ButtonStart"])
     if (ButtonStart)
         Send "{F2}"
-    leftbackButton := GetKeyState("Joy9")
+    leftbackButton := GetKeyState(ControllerButtonMapping["leftbackButton"])
     if (leftbackButton)
         Send "#d"
-    rightbackButton := GetKeyState("Joy10")
+    rightbackButton := GetKeyState(ControllerButtonMapping["rightbackButton"])
     if (rightbackButton)
         Send "!{Tab}"
     ; Send "{Alt down}{Tab}"  ; 按下Alt+Tab，保持Alt键按住
