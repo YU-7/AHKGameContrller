@@ -39,10 +39,6 @@ OnShellHookMessage(wParam, lParam, msg, hwnd) {
             ; 使用"A"参数获取当前活动窗口的进程名
             windowTitle := WinGetProcessName("A")
             ToolTip("执行次数: " . count . "`n 当前激活的程序名: " . windowTitle, 0, 0)
-            if (WindowScripts.has(beforeWindowTitle) && beforeWindowTitle != "") {
-                ; 取消之前程序的映射，并处理为首次触发为空的情况
-                SetTimer (*) => WindowScripts[beforeWindowTitle](), 0
-            }
 
             ; 检查是否有对应的脚本函数
             if (WindowScripts.Has(windowTitle)) {
