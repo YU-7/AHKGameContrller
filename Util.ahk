@@ -65,7 +65,7 @@ ControlMouseWithRightJoystick(speed := "") {
 }
 
 ; 十字键的映射
-CheckPOVDirection() {
+CheckPOVDirection(CrossButton) {
     ; static LastPOV := -1
     POV := GetKeyState("JoyPOV", "P")
 
@@ -76,27 +76,27 @@ CheckPOVDirection() {
     ; LastPOV := POV
 
     ; 根据POV值按下相应的方向键
-    if (POV = 0)
+    if (POV = CrossButton["Up"])
         send "{Up}"  ; 上
-    else if (POV = 9000)
+    else if (POV = CrossButton["Right"])
         Send "{Right}"  ; 右
-    else if (POV = 18000)
+    else if (POV = CrossButton["Down"])
         send "{Down}"  ; 下
-    else if (POV = 27000)
+    else if (POV = CrossButton["Left"])
         Send "{Left}"  ; 左
     ; POV = -1 时为中心位置，不按任何键
 }
 ; 新增Z轴映射为鼠标左键的函数，左右扳机的映射
-ControlMouseWithJoyZ() {
+ControlMouseWithJoyZ(TrigerButton) {
     ; z50是未触发值，z100左扳机的触发值，z0是右扳机的触发值
     static IsLeftDown := false
     static IsRightDown := false
 
     ; 获取Z轴的值并确保它是一个数字
-    JoyZ := GetKeyState("JoyZ")
+    JoyZ := GetKeyState(TrigerButton['key'])
 
     ; 确保JoyZ是一个有效的数字，如果不是则默认为50（中间值）
-    JoyZ := IsNumber(JoyZ) ? JoyZ : 50
+    JoyZ := IsNumber(JoyZ) ? JoyZ : TrigerButton['Unpress']
 
     ; 检查Z轴是否处于左扳机触发状态(100)且鼠标左键当前未按下
     if (JoyZ >= 90 && !IsLeftDown) {  ; 使用90作为阈值，避免精确值问题

@@ -32,3 +32,16 @@ ControllerButtonMapping["ButtonSelect"] := "Joy7"
 ControllerButtonMapping["ButtonStart"] := "Joy8"
 ControllerButtonMapping["leftbackButton"] := "Joy9"
 ControllerButtonMapping["rightbackButton"] := "Joy10"
+; 十字键映射
+CrossButton := Map()
+CrossButton['key'] := "JoyPOV"
+CrossButton["Left"] := 27000
+CrossButton["Right"] := 9000
+CrossButton["Up"] := 0
+CrossButton["Down"] := 18000
+; 扳机键映射
+TrigerButton := Map()
+TrigerButton['key'] := "JoyZ"
+TrigerButton['Unpress'] := 50
+TrigerButton["Left"] := 100
+TrigerButton["Right"] := 0
