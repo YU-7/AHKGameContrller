@@ -15,8 +15,8 @@ HSHELL_WINDOWACTIVATED := 4
 
 ; 窗口脚本映射对象 - 使用Map代替Object以兼容v2语法N
 WindowScripts := Map()
-WindowScripts["msedge.exe"] := ChromeScript
-WindowScripts["chrome.exe"] := ChromeScript
+WindowScripts["msedge.exe"] := ChromeMapping
+WindowScripts["chrome.exe"] := ChromeMapping
 WindowScripts["Hearthstone.exe"] := HearthStroeMapping
 WindowScripts["quark.exe"] := QuarkMapping
 
